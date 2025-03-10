@@ -1,6 +1,9 @@
 module PH_receiver_buffer#(
-    parameter DATA_WIDTH = 8,  // Width of each data word //size of credit
-    parameter FIFO_DEPTH = 16 , // Depth of the FIFO (number of entries) //number of credits
+    parameter INFO_SIGNALS = 10 ,  // Width of each data word //size of credit
+    parameter BYTES=8,
+    parameter FIFO_DEPTH = 1024,  // Depth of the FIFO (number of entries) //number of credits
+    parameter DW = 4* BYTES,
+    parameter DATA_WIDTH = 5*DW,
     parameter BUFFER_TYPE = 3'b000 //PH BUFFER
 )(
     input wire clk,            // Clock signal
@@ -11,14 +14,14 @@ module PH_receiver_buffer#(
     output reg [DATA_WIDTH-1:0] data_out, // Data output
     output wire full,          // FIFO full flag
     output wire empty,          // FIFO empty flag
-    output reg [DATA_WIDTH+2:0]credit_limit
+    output reg [INFO_SIGNALS+2:0]credit_limit
 );
 
 reg [DATA_WIDTH-1:0] mem [FIFO_DEPTH-1:0];
 reg [$clog2(FIFO_DEPTH)-1:0]wr_ptr;
 reg [$clog2(FIFO_DEPTH)-1:0]rd_ptr;
-reg [DATA_WIDTH-1:0] credit_received;
-reg [DATA_WIDTH-1:0] credit_alloc = FIFO_DEPTH;
+reg [INFO_SIGNALS-1:0] credit_received;
+reg [INFO_SIGNALS-1:0] credit_alloc = FIFO_DEPTH;
 reg error_flag;
 
 assign full = (credit_received==FIFO_DEPTH);

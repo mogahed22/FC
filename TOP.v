@@ -1,6 +1,10 @@
 module top #(
-    parameter DATA_WIDTH = 8,  // Width of each data word //size of credit
-    parameter FIFO_DEPTH = 16  // Depth of the FIFO (number of entries) //number of credits
+   parameter INFO_SIGNALS = 10 ,  // Width of each data word //size of credit
+    parameter BYTES=8,
+    parameter FIFO_DEPTH = 1024,  // Depth of the FIFO (number of entries) //number of credits
+    parameter DW = 4* BYTES,
+    parameter DATA_WIDTH = 5*DW,
+    parameter BUFFER_TYPE = 3'b000 //PH BUFFER
 )(
     input wire [DATA_WIDTH-1:0] data_in,
     output wire [DATA_WIDTH-1:0] ph_data_out,pd_data_out,nph_data_out,npd_data_out,ch_data_out,cd_data_out,
@@ -9,7 +13,7 @@ module top #(
 );
 
 wire [DATA_WIDTH-1:0] data_from_tx_to_rx;
-wire [DATA_WIDTH-1:0] ph_credit_limit,pd_credit_limit,nph_credit_limit,npd_credit_limit,ch_credit_limit,cd_credit_limit;
+wire [INFO_SIGNALS-1:0] ph_credit_limit,pd_credit_limit,nph_credit_limit,npd_credit_limit,ch_credit_limit,cd_credit_limit;
     
 TX_elements_VC0 tx(
     .clk(clk),.rst_n(rst_n),.wr_en(wr_en),.data_in(data_in),

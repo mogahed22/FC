@@ -1,31 +1,34 @@
 module transaction_pending_buffer#(
-    parameter DATA_WIDTH = 8,  // Width of each data word //size of credit
-    parameter FIFO_DEPTH = 16  // Depth of the FIFO (number of entries) //number of credits
+    parameter INFO_SIGNALS = 10 ,  // Width of each data word //size of credit
+    parameter BYTES=8,
+    parameter FIFO_DEPTH = 1024,  // Depth of the FIFO (number of entries) //number of credits
+    parameter DW = 4* BYTES,
+    parameter DATA_WIDTH = 5*DW,
+    parameter BUFFER_TYPE = 3'b000 //PH BUFFER
 )(
     input wire clk,            // Clock signal
     input wire rst_n,          // Active-low reset
     input wire wr_en,          // Write enable
     input wire send_signal,          // Read enable
-    input wire [DATA_WIDTH-1:0] data_in, // Data input
+    input wire [ DATA_WIDTH -1:0] data_in, // Data input
     output reg [DATA_WIDTH-1:0] data_out, // Data output
     output wire full,          // FIFO full flag
     output wire empty,          // FIFO empty flag
-    output reg [DATA_WIDTH-1:0] PH_credit_consumed,
-    output reg [DATA_WIDTH-1:0] PD_credit_consumed,
-    output reg [DATA_WIDTH-1:0] NPH_credit_consumed,
-    output reg [DATA_WIDTH-1:0] NPD_credit_consumed,
-    output reg [DATA_WIDTH-1:0] CH_credit_consumed,
-    output reg [DATA_WIDTH-1:0] CD_credit_consumed,
-    output reg [DATA_WIDTH-1:0] ptlp,
-    output reg [2:0] type_of_packet
+    output reg [INFO_SIGNALS-1:0] PH_credit_consumed,
+    output reg [INFO_SIGNALS-1:0] PD_credit_consumed,
+    output reg [INFO_SIGNALS-1:0] NPH_credit_consumed,
+    output reg [INFO_SIGNALS-1:0] NPD_credit_consumed,
+    output reg [INFO_SIGNALS-1:0] CH_credit_consumed,
+    output reg [INFO_SIGNALS-1:0] CD_credit_consumed,
+    output reg [INFO_SIGNALS-1:0] ptlp,
+    output reg [2:0] type_of_packet //FOR NOW
 );
 
-reg [DATA_WIDTH-1:0] mem [FIFO_DEPTH-1:0];
+reg [ DATA_WIDTH - 1:0 ] mem [FIFO_DEPTH-1:0];
 reg [$clog2(FIFO_DEPTH)-1:0]wr_ptr;
 reg [$clog2(FIFO_DEPTH)-1:0]rd_ptr;
 
-reg [DATA_WIDTH-1:0] ptlp; //Number of transaction packets wating in buffer
-reg [DATA_WIDTH-1:0] temp; // temp reg 
+reg [ DATA_WIDTH -1:0] temp; // temp reg 
 
 assign full = (ptlp==FIFO_DEPTH);
 assign empty = (ptlp ==0);
@@ -44,7 +47,7 @@ end
 
 always @(posedge clk or negedge rst_n) begin
     temp <= mem[rd_ptr]; 
-    type_of_packet <= temp[2:0];
+    type_of_packet <= temp[2:0]; // FOR NOW
     if (!rst_n)begin
         ptlp<=0;
         rd_ptr<=0;
@@ -54,7 +57,7 @@ always @(posedge clk or negedge rst_n) begin
         rd_ptr<=rd_ptr+1;
         ptlp<=ptlp-1;
 
-        case(temp[2:0])
+        case(type_of_packet)
         000:PH_credit_consumed<=PH_credit_consumed+1; 
         001:PD_credit_consumed<=PD_credit_consumed+1; 
         010:NPH_credit_consumed<=NPH_credit_consumed+1; 
